@@ -265,7 +265,7 @@ const IntuitionTrainer = () => {
                 Точность: <span className="font-bold">{updateAccuracy()}%</span>
               </p>
 
-              <div className="mb-6 mt-4">
+              <div className="mb-6 mt-6">
                 <label className="block mb-2 text-sm font-medium">
                   Попыток: {attemptsSetting}
                 </label>
@@ -279,7 +279,7 @@ const IntuitionTrainer = () => {
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>50</span>
-                  <span>300</span>
+                  <span>500</span>
                 </div>
               </div>
 
