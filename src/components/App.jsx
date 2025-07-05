@@ -22,9 +22,10 @@ const IntuitionTrainer = () => {
       correct: 0,
       incorrect: 0,
       attempts: 0,
-      currentColor: "bg-gray-300", // Начальный серый цвет
+      currentColor: "bg-gray-300",
       gameHistory: [],
       gameCompleted: false,
+      maxAttempts: 200,
     };
   };
 
@@ -33,7 +34,7 @@ const IntuitionTrainer = () => {
   const [rightActive, setRightActive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const [forceLandscape, setForceLandscape] = useState(false);
+  const [attemptsSetting, setAttemptsSetting] = useState(200);
 
   const {
     correct,
@@ -42,6 +43,7 @@ const IntuitionTrainer = () => {
     currentColor,
     gameHistory,
     gameCompleted,
+    maxAttempts,
   } = gameState;
 
   useEffect(() => {
@@ -58,7 +60,7 @@ const IntuitionTrainer = () => {
   };
 
   const handleGuess = (userGuess) => {
-    if (attempts >= 200) return;
+    if (attempts >= maxAttempts) return;
 
     setLeftActive(false);
     setRightActive(false);
@@ -75,7 +77,7 @@ const IntuitionTrainer = () => {
       (userGuess === "red" && newColor === "bg-red-500");
 
     const newAttempts = attempts + 1;
-    const newCompleted = newAttempts >= 200;
+    const newCompleted = newAttempts >= maxAttempts;
 
     setGameState((prev) => ({
       ...prev,
@@ -99,52 +101,24 @@ const IntuitionTrainer = () => {
   };
 
   const resetGame = () => {
-    // Сначала сбрасываем цвет на серый, чтобы избежать мигания
     setGameState((prev) => ({
       ...prev,
+      correct: 0,
+      incorrect: 0,
+      attempts: 0,
       currentColor: "bg-gray-300",
+      gameCompleted: false,
+      maxAttempts: attemptsSetting,
     }));
-
-    setTimeout(() => {
-      if (gameCompleted) {
-        const newHistory = [
-          ...gameHistory,
-          {
-            correct,
-            incorrect,
-            accuracy: updateAccuracy(),
-            date: new Date().toLocaleString(),
-          },
-        ];
-
-        setGameState({
-          correct: 0,
-          incorrect: 0,
-          attempts: 0,
-          currentColor: "bg-gray-300", // Остается серым до первого клика
-          gameHistory: newHistory,
-          gameCompleted: false,
-        });
-      } else {
-        setGameState((prev) => ({
-          ...prev,
-          correct: 0,
-          incorrect: 0,
-          attempts: 0,
-          currentColor: "bg-gray-300", // Остается серым до первого клика
-        }));
-      }
-
-      setShowModal(false);
-      setShowStats(false);
-    }, 0);
+    setShowModal(false);
+    setShowStats(false);
   };
 
   useEffect(() => {
     if (gameCompleted) {
       setShowModal(true);
     }
-  }, []);
+  }, [gameCompleted]);
 
   const renderStatsChart = () => {
     if (gameHistory.length === 0 && !gameCompleted) {
@@ -220,7 +194,7 @@ const IntuitionTrainer = () => {
             leftActive ? "active-left" : ""
           }`}
           onClick={() => handleGuess("blue")}
-          disabled={attempts >= 200}
+          disabled={attempts >= maxAttempts}
         >
           <div
             className={`absolute inset-0 opacity-0 transition-opacity duration-200 ${
@@ -235,15 +209,15 @@ const IntuitionTrainer = () => {
             className={`w-52 h-80 p-3 text-white flex justify-end items-end rounded-xl transition-colors duration-300 ${currentColor}`}
           >
             <div className="w-full text-right text-xs">
-              <span>{attempts}</span>/200
-              {attempts >= 200 && (
+              <span>{attempts}</span>/{maxAttempts}
+              {attempts >= maxAttempts && (
                 <div className="text-xs mt-1">Игра завершена!</div>
               )}
             </div>
           </div>
 
           <div className="w-52 pt-8 pr-3 flex flex-col items-center text-xs">
-            <div className="w-full text-right ">
+            <div className="w-full text-right">
               Верно: <span className="text-green-700 font-bold">{correct}</span>
             </div>
             <div className="w-full text-right">
@@ -265,7 +239,7 @@ const IntuitionTrainer = () => {
             rightActive ? "active-right" : ""
           }`}
           onClick={() => handleGuess("red")}
-          disabled={attempts >= 200}
+          disabled={attempts >= maxAttempts}
         >
           <div
             className={`absolute inset-0 opacity-0 transition-opacity duration-200 ${
@@ -275,61 +249,87 @@ const IntuitionTrainer = () => {
         </button>
       </div>
 
-      {/* Модальное окно */}
-      {showModal && (
+      {/* Модальное окно с итогами */}
+      {showModal && !showStats && (
         <div className="fixed inset-0 bg-black/70 z-50">
-          <div
-            className={`bg-white p-6 rounded-xl flex flex-col items-center justify-center text-center w-full h-screen overflow-auto ${
-              showStats ? "landscape-layout" : ""
-            }`}
-          >
-            {showStats ? (
-              <div className="w-full h-full">
-                <div className="flex text-sm justify-center gap-4 py-8">
-                  <button
-                    className="px-5 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                    onClick={() => setShowStats(false)}
-                  >
-                    Назад
-                  </button>
-                  <button
-                    className="px-5 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                    onClick={resetGame}
-                  >
-                    Новая
-                  </button>
-                </div>
-                {renderStatsChart()}
-              </div>
-            ) : (
-              <div>
-                <h2 className="text-l font-bold mb-4">Итоги</h2>
-                <p className="mb-2 text-xs">
-                  Угадано: <span className="font-bold">{correct}</span>
-                </p>
-                <p className="mb-2 text-xs">
-                  Не угадано: <span className="font-bold">{incorrect}</span>
-                </p>
-                <p className="mb-6 text-xs">
-                  Точность:{" "}
-                  <span className="font-bold">{updateAccuracy()}%</span>
-                </p>
-                <div className="text-sm flex flex-col justify-center gap-3">
-                  <button
-                    className="px-8 py-1 bg-gray-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    onClick={() => setShowStats(true)}
-                  >
-                    Статистика
-                  </button>
-                  <button
-                    className="px-8 py-1 bg-blue-500 text-white rounded-md hover:bg-green-700 transition-colors"
-                    onClick={resetGame}
-                  >
-                    Новая тренировка
-                  </button>
+          <div className="bg-white p-6 rounded-xl flex flex-col items-center justify-center text-center w-full h-screen overflow-auto">
+            <div>
+              <h2 className="text-xl font-bold mb-4">Итоги</h2>
+              <p className="mb-2">
+                Угадано: <span className="font-bold">{correct}</span>
+              </p>
+              <p className="mb-2">
+                Не угадано: <span className="font-bold">{incorrect}</span>
+              </p>
+              <p className="mb-2">
+                Точность: <span className="font-bold">{updateAccuracy()}%</span>
+              </p>
+
+              <div className="mb-6 mt-4">
+                <label className="block mb-2 text-sm font-medium">
+                  Количество попыток: {attemptsSetting}
+                </label>
+                <input
+                  type="range"
+                  min="50"
+                  max="300"
+                  value={attemptsSetting}
+                  onChange={(e) => setAttemptsSetting(parseInt(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>50</span>
+                  <span>300</span>
                 </div>
               </div>
-            )}
+
+              <div className="flex flex-col gap-3">
+                <button
+                  className="px-8 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                  onClick={() => {
+                    setShowStats(true);
+                    setShowModal(false);
+                  }}
+                >
+                  Статистика
+                </button>
+                <button
+                  className="px-8 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  onClick={resetGame}
+                >
+                  Новая игра
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Окно статистики */}
+      {showStats && (
+        <div className="fixed inset-0 bg-white z-50">
+          <div className="w-full h-full">
+            <div className="flex text-sm justify-center gap-4 py-4">
+              <button
+                className="px-5 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                onClick={() => {
+                  setShowStats(false);
+                  setShowModal(true); // Возвращаем в модальное окно с настройками
+                }}
+              >
+                Назад
+              </button>
+              <button
+                className="px-5 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                onClick={() => {
+                  resetGame();
+                  setShowStats(false);
+                }}
+              >
+                Новая игра
+              </button>
+            </div>
+            {renderStatsChart()}
           </div>
         </div>
       )}
