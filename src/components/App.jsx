@@ -169,14 +169,14 @@ const IntuitionTrainer = () => {
                 type="monotone"
                 dataKey="correct"
                 stroke="#10b981"
-                name="Правильные"
+                name="Верно"
               />
               <Line
                 yAxisId="right"
                 type="monotone"
                 dataKey="incorrect"
                 stroke="#ef4444"
-                name="Неправильные"
+                name="Неверно"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -256,10 +256,10 @@ const IntuitionTrainer = () => {
             <div>
               <h2 className="text-xl font-bold mb-4">Итоги</h2>
               <p className="mb-2">
-                Угадано: <span className="font-bold">{correct}</span>
+                Верно: <span className="font-bold">{correct}</span>
               </p>
               <p className="mb-2">
-                Не угадано: <span className="font-bold">{incorrect}</span>
+                Не верно: <span className="font-bold">{incorrect}</span>
               </p>
               <p className="mb-2">
                 Точность: <span className="font-bold">{updateAccuracy()}%</span>
@@ -267,12 +267,12 @@ const IntuitionTrainer = () => {
 
               <div className="mb-6 mt-4">
                 <label className="block mb-2 text-sm font-medium">
-                  Количество попыток: {attemptsSetting}
+                  Попыток: {attemptsSetting}
                 </label>
                 <input
                   type="range"
                   min="50"
-                  max="300"
+                  max="500"
                   value={attemptsSetting}
                   onChange={(e) => setAttemptsSetting(parseInt(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
@@ -297,7 +297,7 @@ const IntuitionTrainer = () => {
                   className="px-8 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
                   onClick={resetGame}
                 >
-                  Новая игра
+                  Играть
                 </button>
               </div>
             </div>
@@ -326,7 +326,7 @@ const IntuitionTrainer = () => {
                   setShowStats(false);
                 }}
               >
-                Новая игра
+                Играть
               </button>
             </div>
             {renderStatsChart()}
