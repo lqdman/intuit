@@ -79,14 +79,30 @@ const IntuitionTrainer = () => {
     const newAttempts = attempts + 1;
     const newCompleted = newAttempts >= maxAttempts;
 
-    setGameState((prev) => ({
-      ...prev,
-      correct: isCorrect ? prev.correct + 1 : prev.correct,
-      incorrect: !isCorrect ? prev.incorrect + 1 : prev.incorrect,
-      attempts: newAttempts,
-      currentColor: newColor,
-      gameCompleted: newCompleted,
-    }));
+    setGameState((prev) => {
+      const updatedState = {
+        ...prev,
+        correct: isCorrect ? prev.correct + 1 : prev.correct,
+        incorrect: !isCorrect ? prev.incorrect + 1 : prev.incorrect,
+        attempts: newAttempts,
+        currentColor: newColor,
+        gameCompleted: newCompleted,
+      };
+
+      if (newCompleted) {
+        updatedState.gameHistory = [
+          ...prev.gameHistory,
+          {
+            accuracy: Math.round((updatedState.correct / newAttempts) * 100),
+            correct: updatedState.correct,
+            incorrect: updatedState.incorrect,
+            date: new Date().toLocaleString(),
+          },
+        ];
+      }
+
+      return updatedState;
+    });
 
     setTimeout(() => {
       setLeftActive(false);
@@ -121,30 +137,15 @@ const IntuitionTrainer = () => {
   }, [gameCompleted]);
 
   const renderStatsChart = () => {
-    if (gameHistory.length === 0 && !gameCompleted) {
+    if (gameHistory.length === 0) {
       return <p className="text-gray-500 mt-4">Нет данных для отображения</p>;
-    }
-
-    let chartData = [...gameHistory];
-
-    if (
-      gameCompleted &&
-      (gameHistory.length === 0 ||
-        gameHistory[gameHistory.length - 1].correct !== correct)
-    ) {
-      chartData.push({
-        accuracy: updateAccuracy(),
-        correct: correct,
-        incorrect: incorrect,
-        date: new Date().toLocaleString(),
-      });
     }
 
     return (
       <div className="w-full h-full landscape:rotate-90 landscape:origin-bottom-left landscape:fixed landscape:top-0 landscape:left-full landscape:w-screen landscape:h-screen landscape:overflow-auto">
         <div className="h-[80vh] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
+            <LineChart data={gameHistory}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" hide />
               <YAxis yAxisId="left" domain={[0, 100]} />
@@ -314,7 +315,7 @@ const IntuitionTrainer = () => {
                 className="px-5 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                 onClick={() => {
                   setShowStats(false);
-                  setShowModal(true); // Возвращаем в модальное окно с настройками
+                  setShowModal(true);
                 }}
               >
                 Назад
